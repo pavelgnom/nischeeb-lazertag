@@ -1,6 +1,4 @@
 defmodule NischeebLazertagBackend.Application do
-  import Supervisor
-
   def start(_type, _args) do
     children = [
       NischeebLazertagBackend.UDPServer
