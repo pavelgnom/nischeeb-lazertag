@@ -59,12 +59,30 @@ defmodule NischeebLazertagBackend.UDPServer do
     {:stop, :normal, state}
   end
 
-  # fallback pattern match to handle all other (non-"quit") messages
   defp handle_packet(%{"action" => "update_position", "data" => data}, address, state) do
     new_state =
       case from_map_string(data) do
         {:ok, player} -> put_in(state, [:players, address], player)
         {:error, :invalid_data} -> state
+      end
+
+    {:noreply, new_state}
+  end
+
+  defp handle_packet(%{"action" => "shot", "data" => data}, address, state) do
+    new_state =
+      case from_map_string(data) do
+        {:ok, shot_player} ->
+          new_state = put_in(state, [:players, address], shot_player)
+
+          players = Map.delete(state.players, address)
+
+          NischeebLazertagBackend.Collisions.handle(players, shot_player)
+
+          new_state
+
+        {:error, :invalid_data} ->
+          state
       end
 
     {:noreply, new_state}
@@ -76,8 +94,8 @@ defmodule NischeebLazertagBackend.UDPServer do
     {:noreply, state}
   end
 
-  defp from_map_string(%{"x" => x, "y" => y, "angle" => angle, "direction" => direction}) do
-    {:ok, %NischeebLazertagBackend.Player{x: x, y: y, angle: angle, direction: direction}}
+  defp from_map_string(%{"x" => x, "y" => y} = data) do
+    {:ok, %NischeebLazertagBackend.Player{x: x, y: y, angle: data["angle"], direction: data["direction"]}}
   end
 
   defp from_map_string(data) do
