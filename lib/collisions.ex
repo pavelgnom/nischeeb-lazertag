@@ -1,11 +1,6 @@
 defmodule NischeebLazertagBackend.Collisions do
   @epsilon 0.5
-  def handle(players, shooter) do
-    potential_victims =
-      Enum.reject(players, fn player ->
-        player.ip == shooter.ip
-      end)
-
+  def handle(potential_victims, shooter) do
     angle = :math.pi() * shooter.direction / 180.0
 
     vector = %{
