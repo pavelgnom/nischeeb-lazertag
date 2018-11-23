@@ -30,42 +30,58 @@ defmodule NischeebLazertagBackend.UDPServer do
     # Returns: {:ok, port}
     {:ok, port} = :gen_udp.open(port, [:binary, active: true])
 
-    {:ok, %{port: port, user_positions: %{}}}
+    {:ok, %{port: port, players: %{}}}
   end
 
   # define a callback handler for when gen_udp sends us a UDP packet
   def handle_info({:udp, _socket, address, _port, data}, state) do
-    # punt the data to a new function that will do pattern matching
+    IO.puts("Received: #{String.trim(data)}")
 
-    handle_packet(data, address, state)
+    case Jason.decode(data) do
+      {:ok, data} ->
+        handle_packet(data, address, state)
+
+      {:error, _error} ->
+        IO.puts("Not json")
+        {:noreply, state}
+    end
   end
 
-  # define a callback handler for when gen_udp sends us a UDP packet
   def handle_call(:get_state, _from, state) do
-    # punt the data to a new function that will do pattern matching
-
     {:reply, state, state}
   end
 
-  # pattern match the "quit" message
-  defp handle_packet("quit\n", _, port) do
-    IO.puts("Received: quit111")
+  defp handle_packet(%{"action" => "quit"}, _address, %{port: port} = state) do
+    IO.puts("Received: quit")
 
-    # close the port
     :gen_udp.close(port)
 
-    # GenServer will understand this to mean we want to stop the server
-    # action: :stop
-    # reason: :normal
-    # new_state: nil, it doesn't matter since we're shutting down :(
-    {:stop, :normal, nil}
+    {:stop, :normal, state}
   end
 
   # fallback pattern match to handle all other (non-"quit") messages
-  defp handle_packet(data, address, state) do
-    IO.puts("Received: #{String.trim(data)}")
-    data = Jason.decode!(data)
-    new_state = put_in(state, [:user_positions, address], data)
+  defp handle_packet(%{"action" => "update_position", "data" => data}, address, state) do
+    new_state =
+      case from_map_string(data) do
+        {:ok, player} -> put_in(state, [:players, address], player)
+        {:error, :invalid_data} -> state
+      end
+
     {:noreply, new_state}
+  end
+
+  defp handle_packet(data, _address, state) do
+    IO.puts("Invalid data: #{inspect(data)}")
+
+    {:noreply, state}
+  end
+
+  defp from_map_string(%{"x" => x, "y" => y, "angle" => angle, "direction" => direction}) do
+    {:ok, %NischeebLazertagBackend.Player{x: x, y: y, angle: angle, direction: direction}}
+  end
+
+  defp from_map_string(data) do
+    IO.puts("Invalid data: #{inspect(data)}")
+    {:error, :invalid_data}
   end
 end
