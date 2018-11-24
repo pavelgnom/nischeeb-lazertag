@@ -13,26 +13,26 @@ defmodule NischeebLazertag.UDPServer do
   def init(port) do
     {:ok, port} = :gen_udp.open(port, [:binary, active: true])
 
-    {:ok, %{port: port, players: %{}}}
+    {:ok, %{port: port}}
   end
 
   # define a callback handler for when gen_udp sends us a UDP packet
   def handle_info({:udp, _socket, address, _port, data}, state) do
-    IO.puts("Received: #{String.trim(data)}")
+    with {:ok, params} <- Jason.decode(data),
+         %{"action" => action, "data" => data} <- params do
+      case action do
+        "update_position" -> :ok = NischeebLazertag.GenServers.Game.update_position(address, data)
+      end
 
-    case Jason.decode(data) do
-      {:ok, data} ->
-        new_state = NischeebLazertag.Game.handle_packet(data, address, state)
-
-        {:noreply, new_state}
-
+      {:noreply, state}
+    else
       {:error, _error} ->
         IO.puts("Not json")
         {:noreply, state}
-    end
-  end
 
-  def handle_call(:get_state, _from, state) do
-    {:reply, state, state}
+      %{} ->
+        IO.puts("Invalid data")
+        {:noreply, state}
+    end
   end
 end

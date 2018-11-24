@@ -1,46 +1,45 @@
 defmodule NischeebLazertag.Game do
   alias NischeebLazertag.Player
 
-  def handle_packet(%{"action" => "join", "data" => data}, address, state) do
-    with {:error, :player_not_found} <- find_player(address, state),
+  def add_player(data, address, state) do
+    with {:error, :not_found} <- find_player(address, state),
          {:ok, player} <- Player.new(data, address) do
-      put_in(state, [:players, address], player)
+      new_state = put_in(state, [:players, address], player)
+      {:ok, new_state}
     else
       {:error, :invalid_data} ->
-        state
+        IO.puts("Invalid data")
+        {:error, :invalid_data, state}
 
-      {:error, :dead} ->
+      {:error, :dead, player} ->
         IO.puts("Player is dead")
-        state
+        {:error, :dead, player, state}
 
-      {:ok, _player} ->
+      {:ok, player} ->
         IO.puts("Player already exists")
-        state
+        {:error, :exists, player, state}
     end
   end
 
-  def handle_packet(%{"action" => "update_position", "data" => data}, address, state) do
-    require IEx
-
+  def update_position(data, address, state) do
     with {:ok, player} <- find_player(address, state),
-         IEx.pry(),
          {:ok, player} <- Player.update(data, player) do
       put_in(state, [:players, address], player)
     else
       {:error, :invalid_data} ->
         state
 
-      {:error, :player_not_found} ->
+      {:error, :not_found} ->
         IO.puts("Player not found")
         state
 
-      {:error, :dead} ->
+      {:error, :dead, _player} ->
         IO.puts("Player is dead")
         state
     end
   end
 
-  def handle_packet(%{"action" => "shot", "data" => data}, address, state) do
+  def shot(data, address, state) do
     with {:ok, shot_player} <- find_player(address, state),
          {:ok, shot_player} <- Player.update(data, shot_player) do
       new_state = put_in(state, [:players, address], shot_player)
@@ -59,22 +58,19 @@ defmodule NischeebLazertag.Game do
             %{victim | health: 0}
           end
 
-        put_in(state, [:players, victim.address], victim)
+        new_state = put_in(state, [:players, victim.address], victim)
+        {:ok, :hit, {shot_player, victim}, new_state}
       else
-        new_state
+        {:ok, :miss, shot_player, new_state}
       end
     else
-      {:error, :invalid_data} ->
-        IO.puts("Invalid data")
-        state
-
-      {:error, :player_not_found} ->
+      {:error, :not_found} ->
         IO.puts("Player not found")
-        state
+        {:error, :not_found, state}
 
-      {:error, :dead} ->
+      {:error, :dead, player} ->
         IO.puts("Player is dead")
-        state
+        {:error, :dead, player, state}
     end
   end
 
@@ -95,8 +91,8 @@ defmodule NischeebLazertag.Game do
     data = Enum.find(state.players, fn {addr, _player} -> addr == address end)
 
     case data do
-      nil -> {:error, :player_not_found}
-      {_address, %Player{health: 0}} -> {:error, :dead}
+      nil -> {:error, :not_found}
+      {_address, %Player{health: 0} = player} -> {:error, :dead, player, player}
       {_address, %Player{} = player} -> {:ok, player}
     end
   end

@@ -1,6 +1,7 @@
 defmodule NischeebLazertag.Application do
   def start(_type, _args) do
     children = [
+      NischeebLazertag.GenServers.Game,
       NischeebLazertag.UDPServer
     ]
 
