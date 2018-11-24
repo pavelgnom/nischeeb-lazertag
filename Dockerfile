@@ -1,0 +1,13 @@
+FROM elixir:1.7.3-alpine
+ARG MIX_ENV
+
+ENV PORT=8080 MIX_ENV=${MIX_ENV} TERM=xterm
+
+WORKDIR /opt/app
+
+ARG RELEASE
+ENV RELEASE=${RELEASE}
+
+COPY . .
+
+CMD ["mix"]
