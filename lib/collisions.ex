@@ -1,6 +1,8 @@
 defmodule NischeebLazertag.Collisions do
   @epsilon 0.5
 
+  alias NischeebLazertag.Utils.{Vector, Calculations}
+
   def handle(potential_victims, shooter) do
     angle = -:math.pi() * (shooter.direction - 90) / 180.0
 
@@ -9,21 +11,21 @@ defmodule NischeebLazertag.Collisions do
       p2: %{x: :math.cos(angle), y: :math.sin(angle)}
     }
 
-    Enum.map(potential_victims, fn {ip, victim} ->
-      vector_to_victim = %{x: victim.x - shooter.x, y: victim.y - shooter.y}
+    shooter_location = %Vector{x: shooter.x, y: shooter.y}
+    shot_direction = %Vector{x: vector[:p2][:x], y: vector[:p2][:y]}
 
-      dot_product = (vector[:p2][:x] - vector[:p1][:x]) * vector_to_victim.x + (vector[:p2][:y] - vector[:p1][:y]) * vector_to_victim.y
+    # shot_direction
+
+    Enum.map(potential_victims, fn {ip, victim} ->
+      victim_location = %Vector{x: victim.x, y: victim.y}
+
+      dot_product = Vector.dot_product(shot_direction, victim_location)
 
       if dot_product > 0 do
-        distance =
-          Kernel.abs(
-            (vector[:p2][:y] - vector[:p1][:y]) * victim.x - (vector[:p2][:x] - vector[:p1][:x]) * victim.y + vector[:p2][:x] * vector[:p1][:y] -
-              vector[:p2][:y] * vector[:p1][:x]
-          ) / :math.sqrt(:math.pow(vector[:p2][:y] - vector[:p1][:y], 2) + :math.pow(vector[:p2][:x] - vector[:p1][:x], 2))
-
-        distance_from_shooter = :math.sqrt(:math.pow(shooter.x - victim.x, 2) + :math.pow(shooter.y - victim.y, 2))
-
-        %{victim: ip, hit: distance < @epsilon, distance: distance_from_shooter, dot_product: dot_product}
+        point_on_shot_line = Calculations.point_on_line(shooter_location, shot_direction, victim_location)
+        distance_to_shot_line = Calculations.earth_distance(victim_location, point_on_shot_line)
+        distance_from_shooter = Calculations.earth_distance(victim_location, shooter_location)
+        %{victim: ip, hit: distance_to_shot_line < @epsilon, distance: distance_from_shooter, dot_product: dot_product}
       else
         %{victim: ip, hit: false, distance: 0, dot_product: dot_product}
       end
