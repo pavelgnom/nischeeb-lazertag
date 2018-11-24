@@ -1,7 +1,7 @@
 defmodule NischeebLazertag.Application do
   def start(_type, _args) do
     children = [
-      NischeebLazertag.PlayersPool,
+      NischeebLazertag.GenServers.Game,
       NischeebLazertag.UDPServer,
       {Task.Supervisor, name: NischeebLazertag.TaskSupervisor},
       {Task, fn -> NischeebLazertag.TCPServer.accept(2052) end}
