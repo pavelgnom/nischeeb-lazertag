@@ -1,5 +1,5 @@
 defmodule NischeebLazertag.Collisions do
-  @epsilon 0.5
+  @epsilon 1.0
 
   alias NischeebLazertag.Utils.{Vector, Calculations}
 
