@@ -1,4 +1,4 @@
-defmodule NischeebLazertagBackend.Collisions do
+defmodule NischeebLazertag.Collisions do
   @epsilon 0.5
 
   def handle(potential_victims, shooter) do

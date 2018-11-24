@@ -1,7 +1,7 @@
-defmodule NischeebLazertagBackend.Application do
+defmodule NischeebLazertag.Application do
   def start(_type, _args) do
     children = [
-      NischeebLazertagBackend.UDPServer
+      NischeebLazertag.UDPServer
     ]
 
     opts = [strategy: :one_for_one, name: RollCoreWeb.Supervisor]

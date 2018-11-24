@@ -1,7 +1,7 @@
-defmodule NischeebLazertagBackend.CollisionsTest do
+defmodule NischeebLazertag.CollisionsTest do
   use ExUnit.Case
 
-  alias NischeebLazertagBackend.{Player, Collisions}
+  alias NischeebLazertag.{Player, Collisions}
 
   test "should handle collisions" do
     players = %{

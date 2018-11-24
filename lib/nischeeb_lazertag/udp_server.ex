@@ -5,7 +5,7 @@
 # > echo "quit" | nc -u -w0 localhost:2052
 
 # Let's call our module "UDPServer"
-defmodule NischeebLazertagBackend.UDPServer do
+defmodule NischeebLazertag.UDPServer do
   # Our module is going to use the DSL (Domain Specific Language) for Gen(eric) Servers
   use GenServer
 
@@ -77,7 +77,7 @@ defmodule NischeebLazertagBackend.UDPServer do
 
           players = Map.delete(state.players, address)
 
-          NischeebLazertagBackend.Collisions.handle(players, shot_player)
+          NischeebLazertag.Collisions.handle(players, shot_player)
 
           new_state
 
@@ -95,7 +95,7 @@ defmodule NischeebLazertagBackend.UDPServer do
   end
 
   defp from_map_string(%{"x" => x, "y" => y} = data) do
-    {:ok, %NischeebLazertagBackend.Player{x: x, y: y, angle: data["angle"], direction: data["direction"]}}
+    {:ok, %NischeebLazertag.Player{x: x, y: y, angle: data["angle"], direction: data["direction"]}}
   end
 
   defp from_map_string(data) do
