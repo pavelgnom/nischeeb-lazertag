@@ -1,5 +1,5 @@
 # > echo "hello world" | nc -u -w0 localhost:2052
-defmodule NischeebLazertag.UDPServer do
+defmodule NischeebLazertag.GenServers.UDPServer do
   use GenServer
 
   def start_link(_) do

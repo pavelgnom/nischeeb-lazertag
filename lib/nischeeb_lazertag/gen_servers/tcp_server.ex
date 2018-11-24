@@ -1,4 +1,4 @@
-defmodule NischeebLazertag.TCPServer do
+defmodule NischeebLazertag.GenServers.TCPServer do
   require Logger
   use GenServer
 
@@ -22,7 +22,7 @@ defmodule NischeebLazertag.TCPServer do
   defp loop_acceptor(socket) do
     {:ok, client} = :gen_tcp.accept(socket)
     {:ok, {ip, _client_port}} = :inet.peername(client)
-    {:ok, pid} = NischeebLazertag.TCPPlayer.start_link(client, ip)
+    {:ok, pid} = NischeebLazertag.GenServers.TCPPlayer.start_link(client, ip)
 
     :ok = :gen_tcp.controlling_process(client, pid)
     loop_acceptor(socket)

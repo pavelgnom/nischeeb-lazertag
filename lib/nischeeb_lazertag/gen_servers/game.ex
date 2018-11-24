@@ -2,7 +2,7 @@
 defmodule NischeebLazertag.GenServers.Game do
   use GenServer
 
-  alias NischeebLazertag.GenServers.TCPServer
+  alias NischeebLazertag.GenServers.TCPPlayer
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -39,23 +39,23 @@ defmodule NischeebLazertag.GenServers.Game do
   def handle_cast({:add_player, {address, data}}, state) do
     case NischeebLazertag.Game.add_player(data, address, state) do
       {:ok, state} ->
-        # json = Jason.encode!(%{action: :joined})
-        # TCPPlayer.send_response(address, json)
+        json = Jason.encode!(%{action: :joined})
+        TCPPlayer.send_response(address, json)
         {:noreply, state}
 
       {:error, :invalid_data, state} ->
-        # json = Jason.encode!(%{error: :invalid_data})
-        # TCPPlayer.send_response(address, json)
+        json = Jason.encode!(%{error: :invalid_data})
+        TCPPlayer.send_response(address, json)
         {:noreply, state}
 
       {:error, :dead, player, state} ->
-        # json = Jason.encode!(%{error: :dead})
-        # TCPPlayer.send_response(address, json)
+        json = Jason.encode!(%{error: :dead})
+        TCPPlayer.send_response(address, json)
         {:noreply, state}
 
       {:error, :exists, player, state} ->
-        # json = Jason.encode!(%{error: :exists})
-        # TCPPlayer.send_response(address, json)
+        json = Jason.encode!(%{error: :exists})
+        TCPPlayer.send_response(address, json)
         {:noreply, state}
     end
   end
@@ -63,11 +63,11 @@ defmodule NischeebLazertag.GenServers.Game do
   def handle_cast({:shot, {address, data}}, state) do
     case NischeebLazertag.Game.shot(data, address, state) do
       {:ok, action, {shot_player, victim}, state} when action in ~w[hit killed]a ->
-        # json = Jason.encode!(%{action: :hit})
-        # TCPPlayer.send_response(shot_player.address, json)
+        json = Jason.encode!(%{action: :hit})
+        TCPPlayer.send_response(shot_player.address, json)
 
-        # json = Jason.encode!(%{action: if(action == :hit, do: :wound, else: action}, data: %{health: }})
-        # TCPPlayer.send_response(shot_player.address, json)
+        json = Jason.encode!(%{action: if(action == :hit, do: :wound, else: action), data: %{health: victim.health}})
+        TCPPlayer.send_response(shot_player.address, json)
         {:noreply, state}
 
       {:ok, :miss, shot_player, state} ->

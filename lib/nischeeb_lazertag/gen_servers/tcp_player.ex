@@ -1,5 +1,5 @@
 # > echo "hello world" | nc -u -w0 localhost:2052
-defmodule NischeebLazertag.TCPPlayer do
+defmodule NischeebLazertag.GenServers.TCPPlayer do
   use GenServer
 
   def start_link(socket, ip) do
@@ -10,8 +10,8 @@ defmodule NischeebLazertag.TCPPlayer do
     GenServer.call(__MODULE__, :get_state)
   end
 
-  def sent_response(address, json) do
-    GenServer.cast({:global, address}, {:sent_response, json})
+  def send_response(address, json) do
+    GenServer.cast({:global, address}, {:send_response, json})
   end
 
   # SERVER
@@ -34,7 +34,7 @@ defmodule NischeebLazertag.TCPPlayer do
     {:noreply, state}
   end
 
-  def handle_cast({:sent_response, json}, state) do
+  def handle_cast({:send_response, json}, state) do
     :gen_tcp.send(state.socket, json)
 
     {:noreply, state}
