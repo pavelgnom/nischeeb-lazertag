@@ -3,8 +3,9 @@ defmodule NischeebLazertag.Application do
     children = [
       NischeebLazertag.GenServers.Game,
       NischeebLazertag.UDPServer,
-      {Task.Supervisor, name: NischeebLazertag.TaskSupervisor},
-      {Task, fn -> NischeebLazertag.TCPServer.accept(2052) end}
+      NischeebLazertag.TCPServer
+      # {Task.Supervisor, name: NischeebLazertag.TaskSupervisor},
+      # {Task, fn -> NischeebLazertag.TCPServer.accept(2052) end}
     ]
 
     opts = [strategy: :one_for_one, name: RollCoreWeb.Supervisor]
