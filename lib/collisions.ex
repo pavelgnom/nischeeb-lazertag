@@ -10,19 +10,23 @@ defmodule NischeebLazertag.Collisions do
     }
 
     Enum.map(potential_victims, fn {ip, victim} ->
-      distance =
-        Kernel.abs(
-          (vector[:p2][:y] - vector[:p1][:y]) * victim.x - (vector[:p2][:x] - vector[:p1][:x]) * victim.y + vector[:p2][:x] * vector[:p1][:y] -
-            vector[:p2][:y] * vector[:p1][:x]
-        ) / :math.sqrt(:math.pow(vector[:p2][:y] - vector[:p1][:y], 2) + :math.pow(vector[:p2][:x] - vector[:p1][:x], 2))
-
-      distance_from_shooter = :math.sqrt(:math.pow(shooter.x - victim.x, 2) + :math.pow(shooter.y - victim.y, 2))
-
       vector_to_victim = %{x: victim.x - shooter.x, y: victim.y - shooter.y}
 
       dot_product = (vector[:p2][:x] - vector[:p1][:x]) * vector_to_victim.x + (vector[:p2][:y] - vector[:p1][:y]) * vector_to_victim.y
 
-      %{victim: ip, hit: distance < @epsilon, distance: distance_from_shooter, dot_product: dot_product}
+      if dot_product > 0 do
+        distance =
+          Kernel.abs(
+            (vector[:p2][:y] - vector[:p1][:y]) * victim.x - (vector[:p2][:x] - vector[:p1][:x]) * victim.y + vector[:p2][:x] * vector[:p1][:y] -
+              vector[:p2][:y] * vector[:p1][:x]
+          ) / :math.sqrt(:math.pow(vector[:p2][:y] - vector[:p1][:y], 2) + :math.pow(vector[:p2][:x] - vector[:p1][:x], 2))
+
+        distance_from_shooter = :math.sqrt(:math.pow(shooter.x - victim.x, 2) + :math.pow(shooter.y - victim.y, 2))
+
+        %{victim: ip, hit: distance < @epsilon, distance: distance_from_shooter, dot_product: dot_product}
+      else
+        %{victim: ip, hit: false, distance: 0, dot_product: dot_product}
+      end
     end)
     |> Enum.sort_by(fn hit -> hit.distance end)
     |> Enum.find(%{}, fn victim -> victim.hit && victim.dot_product > 0 end)
