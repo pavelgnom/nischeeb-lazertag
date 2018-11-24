@@ -1,19 +1,10 @@
-# to run:
-# > elixir --no-halt udp_server.exs
-# to test:
 # > echo "hello world" | nc -u -w0 localhost:2052
-# > echo "quit" | nc -u -w0 localhost:2052
-
-# Let's call our module "UDPServer"
 defmodule NischeebLazertag.UDPServer do
-  # Our module is going to use the DSL (Domain Specific Language) for Gen(eric) Servers
   use GenServer
 
-  # We need a factory method to create our server process
-  # it takes a single parameter `port` which defaults to `2052`
-  # This runs in the caller's context
+  alias NischeebLazertag.{Gun, Player}
+
   def start_link(_) do
-    # Start 'er up
     GenServer.start_link(__MODULE__, 2052, name: __MODULE__)
   end
 
@@ -21,13 +12,7 @@ defmodule NischeebLazertag.UDPServer do
     GenServer.call(__MODULE__, :get_state)
   end
 
-  # Initialization that runs in the server context (inside the server process right after it boots)
   def init(port) do
-    # Use erlang's `gen_udp` module to open a port
-    # With options:
-    #   - binary: request that data be returned as a `String`
-    #   - active: gen_udp will handle data reception, and send us a message `{:udp, port, address, port, data}` when new data arrives on the port
-    # Returns: {:ok, port}
     {:ok, port} = :gen_udp.open(port, [:binary, active: true])
 
     {:ok, %{port: port, players: %{}}}
@@ -51,6 +36,68 @@ defmodule NischeebLazertag.UDPServer do
     {:reply, state, state}
   end
 
+  defp handle_packet(%{"action" => "join", "data" => data}, address, state) do
+    new_state =
+      with {:error, :player_not_found} <- find_player(address, state),
+           {:ok, player} <- Player.new(data) do
+        put_in(state, [:players, address], player)
+      else
+        {:error, :invalid_data} ->
+          state
+
+        {:ok, _player} ->
+          IO.puts("Player already exists")
+          state
+      end
+
+    {:noreply, new_state}
+  end
+
+  defp handle_packet(%{"action" => "update_position", "data" => data}, address, state) do
+    new_state =
+      with {:ok, player} <- find_player(address, state),
+           {:ok, player} <- Player.update(data, player) do
+        put_in(state, [:players, address], player)
+      else
+        {:error, :invalid_data} ->
+          state
+
+        {:error, :player_not_found} ->
+          IO.puts("Player not found")
+          state
+      end
+
+    {:noreply, new_state}
+  end
+
+  defp handle_packet(%{"action" => "shot", "data" => data}, address, state) do
+    new_state =
+      with {:ok, player} <- find_player(address, state),
+           {:ok, player} <- Player.update(data, player),
+           {:ok, player} <- decrement_ammo(player) do
+        new_state = put_in(state, [:players, address], player)
+        players = Map.delete(state.players, address)
+
+        NischeebLazertag.Collisions.handle(players, player)
+
+        new_state
+      else
+        {:error, :invalid_data} ->
+          IO.puts("Invalid data")
+          state
+
+        {:error, :player_not_found} ->
+          IO.puts("Player not found")
+          state
+
+        {:error, :zero_ammo} ->
+          IO.puts("Zero ammo")
+          state
+      end
+
+    {:noreply, new_state}
+  end
+
   defp handle_packet(%{"action" => "quit"}, _address, %{port: port} = state) do
     IO.puts("Received: quit")
 
@@ -59,47 +106,30 @@ defmodule NischeebLazertag.UDPServer do
     {:stop, :normal, state}
   end
 
-  defp handle_packet(%{"action" => "update_position", "data" => data}, address, state) do
-    new_state =
-      case from_map_string(data) do
-        {:ok, player} -> put_in(state, [:players, address], player)
-        {:error, :invalid_data} -> state
-      end
-
-    {:noreply, new_state}
-  end
-
-  defp handle_packet(%{"action" => "shot", "data" => data}, address, state) do
-    new_state =
-      case from_map_string(data) do
-        {:ok, shot_player} ->
-          new_state = put_in(state, [:players, address], shot_player)
-
-          players = Map.delete(state.players, address)
-
-          NischeebLazertag.Collisions.handle(players, shot_player)
-
-          new_state
-
-        {:error, :invalid_data} ->
-          state
-      end
-
-    {:noreply, new_state}
-  end
-
   defp handle_packet(data, _address, state) do
     IO.puts("Invalid data: #{inspect(data)}")
 
     {:noreply, state}
   end
 
-  defp from_map_string(%{"x" => x, "y" => y} = data) do
-    {:ok, %NischeebLazertag.Player{x: x, y: y, angle: data["angle"], direction: data["direction"]}}
+  defp find_player(address, state) do
+    data = Enum.find(state.players, fn {addr, _player} -> addr == address end)
+
+    case data do
+      nil -> {:error, :player_not_found}
+      {_address, player} -> {:ok, player}
+    end
   end
 
-  defp from_map_string(data) do
-    IO.puts("Invalid data: #{inspect(data)}")
-    {:error, :invalid_data}
+  defp decrement_ammo(player) do
+    case player.gun do
+      %Gun{ammo: ammo} = gun when ammo > 0 ->
+        gun = %{gun | ammo: ammo - 1}
+        player = %{player | gun: gun}
+        {:ok, player}
+
+      _ ->
+        {:error, :zero_ammo}
+    end
   end
 end

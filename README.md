@@ -1,4 +1,4 @@
-# NischeebLazertagBackend
+# NischeebLazertag
 
 **TODO: Add description**
 
