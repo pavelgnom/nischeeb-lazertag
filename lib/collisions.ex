@@ -35,10 +35,12 @@ defmodule NischeebLazertag.Collisions do
           {vertical_hit, hit_angle} =
             if vertical_angle >= 0 do
               angle = Calculations.get_max_hit_angle(distance_from_shooter, @height_above_gun)
-              {vertical_angle < angle, angle}
+              # {vertical_angle < angle, angle}
+              {true, angle}
             else
               angle = Calculations.get_max_hit_angle(distance_from_shooter, @heigth_of_gun)
-              {vertical_angle > -angle, angle}
+              # {vertical_angle > -angle, angle}
+              {true, angle}
             end
 
           if vertical_hit do
