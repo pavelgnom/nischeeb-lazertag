@@ -27,7 +27,9 @@ defmodule NischeebLazertag.MixProject do
   defp deps do
     [
       {:jason, "~> 1.1"},
-      {:ex_machina, "~> 2.2", only: :test}
+      {:ex_machina, "~> 2.2", only: :test},
+      {:plug, "~> 1.7.1"},
+      {:plug_cowboy, "~> 2.0"}
     ]
   end
 end

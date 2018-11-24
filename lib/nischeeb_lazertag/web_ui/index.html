@@ -1,0 +1,29 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="refresh" content="1">
+    <title>Lazertag Map</title>
+</head>
+
+<body>
+    <canvas id="map" width="500" height="500" style="border:1px solid #000000;">
+    </canvas>
+    <script>
+        var c = document.getElementById("map");
+        var ctx = c.getContext("2d");
+        fetch("http://localhost:4000/").then(response => { return response.json() }).then(data => {
+            console.log(data)
+            data.forEach(player => {
+                ctx.beginPath();
+                ctx.ellipse(player.x, player.y, 20, 20, Math.PI / 4, 0.3 - Math.PI / 2, 1.5 * Math.PI - 0.3);
+                ctx.stroke();
+            });
+
+        });
+    </script>
+</body>
+
+</html>
