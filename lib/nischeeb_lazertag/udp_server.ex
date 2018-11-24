@@ -22,7 +22,9 @@ defmodule NischeebLazertag.UDPServer do
 
     case Jason.decode(data) do
       {:ok, data} ->
-        NischeebLazertag.Game.handle_packet(data, address, state)
+        new_state = NischeebLazertag.Game.handle_packet(data, address, state)
+
+        {:noreply, new_state}
 
       {:error, _error} ->
         IO.puts("Not json")
