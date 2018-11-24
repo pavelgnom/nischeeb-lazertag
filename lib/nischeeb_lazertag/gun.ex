@@ -5,7 +5,7 @@ defmodule NischeebLazertag.Gun do
 
   def new(type) do
     case type do
-      "revolver" -> %__MODULE__{type: "revolver", damage: 50}
+      "revolver" -> %__MODULE__{type: "revolver", damage: 5}
     end
   end
 end

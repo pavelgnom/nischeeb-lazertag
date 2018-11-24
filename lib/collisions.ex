@@ -38,12 +38,12 @@ defmodule NischeebLazertag.Collisions do
               vertical_angle > -Calculations.get_max_hit_angle(distance_from_shooter, @heigth_of_gun)
             end
 
-          %{victim: ip, hit: vertical_hit, distance: distance_from_shooter, dot_product: dot_product}
+          %{victim: victim, hit: vertical_hit, distance: distance_from_shooter, dot_product: dot_product}
         else
-          %{victim: ip, hit: false, distance: distance_from_shooter, dot_product: dot_product}
+          %{victim: victim, hit: false, distance: distance_from_shooter, dot_product: dot_product}
         end
       else
-        %{victim: ip, hit: false, distance: 0, dot_product: dot_product}
+        %{victim: victim, hit: false, distance: 0, dot_product: dot_product}
       end
     end)
     |> Enum.sort_by(fn hit -> hit.distance end)

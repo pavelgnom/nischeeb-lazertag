@@ -63,14 +63,16 @@ defmodule NischeebLazertag.GenServers.Game do
   def handle_cast({:shot, {address, data}}, state) do
     case NischeebLazertag.Game.shot(data, address, state) do
       {:ok, action, {shot_player, victim}, state} when action in ~w[hit killed]a ->
-        json = Jason.encode!(%{action: :hit})
+        json = Jason.encode!(%{action: if(action == :hit, do: :hit, else: :kill)})
         TCPPlayer.send_response(shot_player.address, json)
 
         json = Jason.encode!(%{action: if(action == :hit, do: :wound, else: action), data: %{health: victim.health}})
-        TCPPlayer.send_response(shot_player.address, json)
+        TCPPlayer.send_response(victim.address, json)
         {:noreply, state}
 
       {:ok, :miss, shot_player, state} ->
+        json = Jason.encode!(%{action: :miss})
+        TCPPlayer.send_response(shot_player.address, json)
         {:noreply, state}
 
       {:error, :dead, player, state} ->
