@@ -5,6 +5,7 @@ defmodule NischeebLazertag.Collisions do
   @epsilon 1.0
 
   alias NischeebLazertag.Utils.{Vector, Calculations}
+  require Logger
 
   def handle(potential_victims, shooter) do
     vertical_angle = shooter.angle - 90
@@ -31,18 +32,48 @@ defmodule NischeebLazertag.Collisions do
         distance_from_shooter = Calculations.earth_distance(victim_location, shooter_location)
 
         if distance_to_shot_line < @epsilon do
-          vertical_hit =
+          {vertical_hit, hit_angle} =
             if vertical_angle >= 0 do
-              vertical_angle < Calculations.get_max_hit_angle(distance_from_shooter, @height_above_gun)
+              angle = Calculations.get_max_hit_angle(distance_from_shooter, @height_above_gun)
+              {vertical_angle < angle, angle}
             else
-              vertical_angle > -Calculations.get_max_hit_angle(distance_from_shooter, @heigth_of_gun)
+              angle = Calculations.get_max_hit_angle(distance_from_shooter, @heigth_of_gun)
+              {vertical_angle > -angle, angle}
             end
+
+          if vertical_hit do
+            Logger.info("Vertical HIT",
+              distance: distance_from_shooter,
+              dot_product: dot_product,
+              victim: inspect(victim),
+              shot_player: inspect(shooter),
+              angle: vertical_angle,
+              hit_angle: hit_angle
+            )
+          else
+            Logger.info("Vertical MISS",
+              distance: distance_from_shooter,
+              dot_product: dot_product,
+              victim: inspect(victim),
+              shot_player: inspect(shooter),
+              angle: vertical_angle,
+              hit_angle: hit_angle
+            )
+          end
 
           %{victim: victim, hit: vertical_hit, distance: distance_from_shooter, dot_product: dot_product}
         else
+          Logger.info("Horisontal MISS",
+            distance: distance_from_shooter,
+            dot_product: dot_product,
+            victim: inspect(victim),
+            shot_player: inspect(shooter)
+          )
+
           %{victim: victim, hit: false, distance: distance_from_shooter, dot_product: dot_product}
         end
       else
+        Logger.info("Dot product is negative", dot_product: dot_product, victim: inspect(victim), shot_player: inspect(shooter))
         %{victim: victim, hit: false, distance: 0, dot_product: dot_product}
       end
     end)

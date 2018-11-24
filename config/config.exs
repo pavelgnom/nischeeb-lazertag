@@ -23,7 +23,7 @@ config :logger,
 
 config :logger, :console,
   format: "\n$time [$level] $levelpad$message  $metadata",
-  metadata: [:player, :shot_player, :victim, :action, :data, :ip]
+  metadata: [:player, :shot_player, :victim, :action, :data, :ip, :distance, :dot_product, :angle, :hit_angle]
 
 #
 
