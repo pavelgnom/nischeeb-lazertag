@@ -20,7 +20,7 @@ defmodule NischeebLazertag.GenServers.UDPServer do
 
   # define a callback handler for when gen_udp sends us a UDP packet
   def handle_info({:udp, _socket, address, _port, data}, state) do
-    Logger.info("UDP Received", data: data)
+    Logger.info("UDP Received", ip: inspect(address), data: data)
 
     with {:ok, params} <- Jason.decode(data),
          %{"action" => action, "data" => data} <- params do

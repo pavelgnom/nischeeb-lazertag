@@ -8,7 +8,7 @@ defmodule NischeebLazertag.Game do
          {:ok, player} <- Player.new(data, address) do
       Logger.info("Joined", player: inspect(player))
       new_state = put_in(state, [:players, address], player)
-      {:ok, new_state}
+      {:ok, player, new_state}
     else
       {:error, :invalid_data} ->
         {:error, :invalid_data, state}

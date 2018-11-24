@@ -4,7 +4,7 @@ defmodule NischeebLazertag.GenServers.Game do
 
   require Logger
 
-  alias NischeebLazertag.GenServers.TCPPlayer
+  alias NischeebLazertag.GenServers.{TCPPlayer, Statistics}
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -40,7 +40,8 @@ defmodule NischeebLazertag.GenServers.Game do
 
   def handle_cast({:add_player, {address, data}}, state) do
     case NischeebLazertag.Game.add_player(data, address, state) do
-      {:ok, state} ->
+      {:ok, player, state} ->
+        Statistics.add(player)
         json = Jason.encode!(%{action: :joined})
         TCPPlayer.send_response(address, json)
         {:noreply, state}
@@ -67,6 +68,8 @@ defmodule NischeebLazertag.GenServers.Game do
       {:ok, action, {shot_player, victim}, state} when action in ~w[hit killed]a ->
         Logger.info("HIT", action: action, shot_player: inspect(shot_player), victim: inspect(victim))
 
+        Statistics.update(%{action: action, shot_player: shot_player, victim: victim})
+
         if action == :killed do
           Process.send_after(__MODULE__, {:respawn, victim.address}, 30_000)
         end
@@ -80,6 +83,7 @@ defmodule NischeebLazertag.GenServers.Game do
 
       {:ok, :miss, shot_player, state} ->
         json = Jason.encode!(%{action: :miss})
+        Statistics.update(%{action: :miss, shot_player: shot_player})
         TCPPlayer.send_response(shot_player.address, json)
         {:noreply, state}
 
