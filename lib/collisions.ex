@@ -20,7 +20,7 @@ defmodule NischeebLazertag.Collisions do
 
     # shot_direction
 
-    Enum.map(potential_victims, fn {ip, victim} ->
+    Enum.map(potential_victims, fn {_ip, victim} ->
       victim_location = %Vector{x: victim.x, y: victim.y}
 
       dot_product = Vector.dot_product(shot_direction, victim_location)

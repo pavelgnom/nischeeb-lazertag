@@ -48,12 +48,12 @@ defmodule NischeebLazertag.GenServers.Game do
         TCPPlayer.send_response(address, json)
         {:noreply, state}
 
-      {:error, :dead, player, state} ->
+      {:error, :dead, _player, state} ->
         json = Jason.encode!(%{error: :dead})
         TCPPlayer.send_response(address, json)
         {:noreply, state}
 
-      {:error, :exists, player, state} ->
+      {:error, :exists, _player, state} ->
         json = Jason.encode!(%{error: :exists})
         TCPPlayer.send_response(address, json)
         {:noreply, state}
@@ -63,6 +63,10 @@ defmodule NischeebLazertag.GenServers.Game do
   def handle_cast({:shot, {address, data}}, state) do
     case NischeebLazertag.Game.shot(data, address, state) do
       {:ok, action, {shot_player, victim}, state} when action in ~w[hit killed]a ->
+        if action == :killed do
+          Process.send_after(__MODULE__, {:respawn, victim.address}, 30_000)
+        end
+
         json = Jason.encode!(%{action: if(action == :hit, do: :hit, else: :kill)})
         TCPPlayer.send_response(shot_player.address, json)
 
@@ -75,7 +79,7 @@ defmodule NischeebLazertag.GenServers.Game do
         TCPPlayer.send_response(shot_player.address, json)
         {:noreply, state}
 
-      {:error, :dead, player, state} ->
+      {:error, :dead, _player, state} ->
         {:noreply, state}
 
       {:error, :not_found, state} ->
@@ -87,5 +91,11 @@ defmodule NischeebLazertag.GenServers.Game do
     state = NischeebLazertag.Game.update_position(data, address, state)
 
     {:noreply, state}
+  end
+
+  def handle_info({:respawn, address}, state) do
+    new_state = NischeebLazertag.Game.respawn(address, state)
+
+    {:noreply, new_state}
   end
 end

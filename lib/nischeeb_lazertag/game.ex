@@ -74,17 +74,14 @@ defmodule NischeebLazertag.Game do
     end
   end
 
-  def handle_packet(%{"action" => "quit"}, _address, %{port: port} = state) do
-    IO.puts("Received: quit")
+  def respawn(address, state) do
+    case find_player(address, state) do
+      {:error, :dead, player} ->
+        put_in(state, [:players, player.address], %{player | health: 100})
 
-    :gen_udp.close(port)
-
-    {:stop, :normal, state}
-  end
-
-  def handle_packet(data, _address, state) do
-    IO.puts("Invalid data: #{inspect(data)}")
-    state
+      _ ->
+        state
+    end
   end
 
   defp find_player(address, state) do
@@ -92,7 +89,7 @@ defmodule NischeebLazertag.Game do
 
     case data do
       nil -> {:error, :not_found}
-      {_address, %Player{health: 0} = player} -> {:error, :dead, player, player}
+      {_address, %Player{health: 0} = player} -> {:error, :dead, player}
       {_address, %Player{} = player} -> {:ok, player}
     end
   end
