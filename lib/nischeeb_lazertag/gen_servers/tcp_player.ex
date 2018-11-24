@@ -20,12 +20,15 @@ defmodule NischeebLazertag.TCPPlayer do
     {:ok, %{socket: socket}}
   end
 
-  def handle_info({:tcp, socket, params}, state) do
-    # {:ok, {ip, client_port}} = :inet.peername(socket)
+  def handle_info({:tcp, socket, data}, state) do
+    {:ok, {ip, _client_port}} = :inet.peername(socket)
 
-    case decode(params) do
-      %{"action" => "join", "data" => data} = params ->
+    case decode(data) do
+      %{"action" => "join", "data" => data} ->
         NischeebLazertag.GenServers.Game.add_player(ip, data)
+
+      %{"action" => "shot", "data" => data} ->
+        NischeebLazertag.GenServers.Game.shot(ip, data)
     end
 
     {:noreply, state}
@@ -47,9 +50,5 @@ defmodule NischeebLazertag.TCPPlayer do
       %{} ->
         IO.puts("Invalid data")
     end
-  end
-
-  defp write_line(line, socket) do
-    :gen_tcp.send(socket, line)
   end
 end
