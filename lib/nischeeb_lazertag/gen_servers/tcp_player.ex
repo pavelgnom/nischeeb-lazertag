@@ -25,7 +25,7 @@ defmodule NischeebLazertag.GenServers.TCPPlayer do
   def handle_info({:tcp, socket, data}, state) do
     {:ok, {ip, _client_port}} = :inet.peername(socket)
 
-    Logger.info("TCP Received", data: data)
+    Logger.info("TCP Received", ip: inspect(ip), data: data)
 
     case decode(data) do
       %{"action" => "join", "data" => data} ->
@@ -36,6 +36,9 @@ defmodule NischeebLazertag.GenServers.TCPPlayer do
 
       %{"action" => "join"} ->
         NischeebLazertag.GenServers.Game.add_player(ip, %{"x" => 0, "y" => 0})
+
+      %{"action" => "get_statistics"} ->
+        NischeebLazertag.GenServers.Statistics.get_statistics(ip)
 
       _ ->
         42
