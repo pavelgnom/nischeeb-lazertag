@@ -20,7 +20,10 @@ defmodule NischeebLazertag.Game do
   end
 
   def handle_packet(%{"action" => "update_position", "data" => data}, address, state) do
+    require IEx
+
     with {:ok, player} <- find_player(address, state),
+         IEx.pry(),
          {:ok, player} <- Player.update(data, player) do
       put_in(state, [:players, address], player)
     else
