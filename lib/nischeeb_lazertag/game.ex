@@ -1,22 +1,24 @@
 defmodule NischeebLazertag.Game do
   alias NischeebLazertag.Player
 
+  require Logger
+
   def add_player(data, address, state) do
     with {:error, :not_found} <- find_player(address, state),
          {:ok, player} <- Player.new(data, address) do
+      Logger.info("Joined", player: inspect(player))
       new_state = put_in(state, [:players, address], player)
       {:ok, new_state}
     else
       {:error, :invalid_data} ->
-        IO.puts("Invalid data")
         {:error, :invalid_data, state}
 
       {:error, :dead, player} ->
-        IO.puts("Player is dead")
+        Logger.error("Dead", player: inspect(player))
         {:error, :dead, player, state}
 
       {:ok, player} ->
-        IO.puts("Player already exists")
+        Logger.error("Already exists", player: inspect(player))
         {:error, :exists, player, state}
     end
   end
@@ -30,11 +32,9 @@ defmodule NischeebLazertag.Game do
         state
 
       {:error, :not_found} ->
-        IO.puts("Player not found")
         state
 
       {:error, :dead, _player} ->
-        IO.puts("Player is dead")
         state
     end
   end
@@ -65,11 +65,9 @@ defmodule NischeebLazertag.Game do
       end
     else
       {:error, :not_found} ->
-        IO.puts("Player not found")
         {:error, :not_found, state}
 
       {:error, :dead, player} ->
-        IO.puts("Player is dead")
         {:error, :dead, player, state}
     end
   end

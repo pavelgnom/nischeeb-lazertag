@@ -2,6 +2,8 @@
 defmodule NischeebLazertag.GenServers.Game do
   use GenServer
 
+  require Logger
+
   alias NischeebLazertag.GenServers.TCPPlayer
 
   def start_link(_) do
@@ -63,6 +65,8 @@ defmodule NischeebLazertag.GenServers.Game do
   def handle_cast({:shot, {address, data}}, state) do
     case NischeebLazertag.Game.shot(data, address, state) do
       {:ok, action, {shot_player, victim}, state} when action in ~w[hit killed]a ->
+        Logger.info("HIT", action: action, shot_player: inspect(shot_player), victim: inspect(victim))
+
         if action == :killed do
           Process.send_after(__MODULE__, {:respawn, victim.address}, 30_000)
         end

@@ -2,6 +2,8 @@
 defmodule NischeebLazertag.GenServers.UDPServer do
   use GenServer
 
+  require Logger
+
   def start_link(_) do
     GenServer.start_link(__MODULE__, 2052, name: __MODULE__)
   end
@@ -18,7 +20,7 @@ defmodule NischeebLazertag.GenServers.UDPServer do
 
   # define a callback handler for when gen_udp sends us a UDP packet
   def handle_info({:udp, _socket, address, _port, data}, state) do
-    IO.puts("UDP Received: #{data}")
+    Logger.info("UDP Received", data: data)
 
     with {:ok, params} <- Jason.decode(data),
          %{"action" => action, "data" => data} <- params do
@@ -29,11 +31,9 @@ defmodule NischeebLazertag.GenServers.UDPServer do
       {:noreply, state}
     else
       {:error, _error} ->
-        IO.puts("Not json")
         {:noreply, state}
 
       %{} ->
-        IO.puts("Invalid data")
         {:noreply, state}
     end
   end

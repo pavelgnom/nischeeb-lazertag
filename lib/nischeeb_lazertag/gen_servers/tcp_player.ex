@@ -2,6 +2,8 @@
 defmodule NischeebLazertag.GenServers.TCPPlayer do
   use GenServer
 
+  require Logger
+
   def start_link(socket, ip) do
     GenServer.start_link(__MODULE__, socket, name: {:global, ip})
   end
@@ -23,7 +25,7 @@ defmodule NischeebLazertag.GenServers.TCPPlayer do
   def handle_info({:tcp, socket, data}, state) do
     {:ok, {ip, _client_port}} = :inet.peername(socket)
 
-    IO.puts("Received: #{data}")
+    Logger.info("TCP Received", data: data)
 
     case decode(data) do
       %{"action" => "join", "data" => data} ->
@@ -43,9 +45,14 @@ defmodule NischeebLazertag.GenServers.TCPPlayer do
   end
 
   def handle_info({:tcp_closed, socket}, state) do
-    # {:ok, {ip, _client_port}} = :inet.peername(socket)
+    ip =
+      case :inet.peername(socket) do
+        {:ok, {ip, _client_port}} -> ip
+        _ -> "unknown"
+      end
+
     :gen_tcp.close(socket)
-    IO.puts("TCP connection closed ip: unknown")
+    Logger.info("TCP connection closed", ip: ip)
     {:stop, :normal, state}
   end
 
@@ -59,11 +66,7 @@ defmodule NischeebLazertag.GenServers.TCPPlayer do
     with {:ok, data} <- Jason.decode(data) do
       data
     else
-      {:error, _error} ->
-        IO.puts("Not json")
-
-      %{} ->
-        IO.puts("Invalid data")
+      _ -> 42
     end
   end
 end
