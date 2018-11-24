@@ -51,15 +51,15 @@ defmodule NischeebLazertag.Game do
         damage = shot_player.gun.damage
         health_after_shot = victim.health - damage
 
-        victim =
-          if health_after_shot > 0 do
-            %{victim | health: health_after_shot}
-          else
-            %{victim | health: 0}
-          end
-
-        new_state = put_in(state, [:players, victim.address], victim)
-        {:ok, :hit, {shot_player, victim}, new_state}
+        if health_after_shot > 0 do
+          victim = %{victim | health: health_after_shot}
+          new_state = put_in(state, [:players, victim.address], victim)
+          {:ok, :hit, {shot_player, victim}, new_state}
+        else
+          victim = %{victim | health: 0}
+          new_state = put_in(state, [:players, victim.address], victim)
+          {:ok, :killed, {shot_player, victim}, new_state}
+        end
       else
         {:ok, :miss, shot_player, new_state}
       end

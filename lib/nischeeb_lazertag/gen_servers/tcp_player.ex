@@ -10,6 +10,12 @@ defmodule NischeebLazertag.TCPPlayer do
     GenServer.call(__MODULE__, :get_state)
   end
 
+  def sent_response(address, json) do
+    GenServer.cast({:global, address}, {:sent_response, json})
+  end
+
+  # SERVER
+
   def init(socket) do
     {:ok, %{socket: socket}}
   end
@@ -21,6 +27,12 @@ defmodule NischeebLazertag.TCPPlayer do
       %{"action" => "join", "data" => data} = params ->
         NischeebLazertag.GenServers.Game.add_player(ip, data)
     end
+
+    {:noreply, state}
+  end
+
+  def handle_cast({:sent_response, json}, state) do
+    :gen_tcp.send(state.socket, json)
 
     {:noreply, state}
   end
