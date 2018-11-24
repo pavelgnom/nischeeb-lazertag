@@ -40,7 +40,15 @@ defmodule NischeebLazertag.Utils.Calculations do
     angle * @earth_radius_in_meters
   end
 
+  def get_max_hit_angle(distance, object_height) do
+    radians_to_degrees(:math.atan(object_height / distance))
+  end
+
   def degrees_to_radians(degrees) do
     :math.pi() * degrees / 180.0
+  end
+
+  def radians_to_degrees(radians) do
+    180.0 * radians / :math.pi()
   end
 end
