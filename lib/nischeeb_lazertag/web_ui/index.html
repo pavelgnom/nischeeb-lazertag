@@ -14,7 +14,10 @@
     <script>
         var c = document.getElementById("map");
         var ctx = c.getContext("2d");
-        fetch("http://localhost:4000/").then(response => { return response.json() }).then(data => {
+
+        fetch("http://localhost:4000/map-data").then(response => { return response.json() }).then(data => {
+            console.log(data)
+
             data.forEach(player => {
                 console.log(player)
                 ctx.beginPath();
