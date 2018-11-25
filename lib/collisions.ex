@@ -2,14 +2,19 @@ defmodule NischeebLazertag.Collisions do
   @heigth_of_gun 1.5
   @height_of_human 1.7
   @height_above_gun @height_of_human - @heigth_of_gun
-  @epsilon 1.0
+  @epsilon 3.0
 
   alias NischeebLazertag.Utils.{Vector, Calculations}
   require Logger
 
   def handle(potential_victims, shooter) do
     vertical_angle = shooter.angle - 90
-    angle = -:math.pi() * (shooter.direction - 90) / 180.0
+    # angle = convert_angle(shooter.direction)
+    # angle = :math.pi() * shooter.direction / 180.0
+
+    angle = :math.pi() * shooter.direction / 180.0
+
+    IO.puts(angle)
 
     vector = %{
       p1: %{x: shooter.x, y: shooter.y},
@@ -24,7 +29,11 @@ defmodule NischeebLazertag.Collisions do
     Enum.map(potential_victims, fn {_ip, victim} ->
       victim_location = %Vector{x: victim.x, y: victim.y}
 
-      dot_product = Vector.dot_product(shot_direction, victim_location)
+      IO.puts(inspect(shot_direction))
+      IO.puts(inspect(Vector.normalize(Vector.sub(victim_location, shooter_location))))
+
+      dot_product = Vector.dot_product(shot_direction, Vector.sub(victim_location, shooter_location))
+      IO.puts(inspect(dot_product))
 
       if dot_product > 0 do
         point_on_shot_line = Calculations.point_on_line(shooter_location, shot_direction, victim_location)
@@ -82,5 +91,11 @@ defmodule NischeebLazertag.Collisions do
     |> Enum.sort_by(fn hit -> hit.distance end)
     |> Enum.find(%{}, fn victim -> victim.hit && victim.dot_product > 0 end)
     |> Map.get(:victim)
+  end
+
+  def convert_angle(mobile_angle) do
+    # cond do
+    # end
+    42
   end
 end
