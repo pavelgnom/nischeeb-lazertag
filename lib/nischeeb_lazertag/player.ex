@@ -11,7 +11,7 @@ defmodule NischeebLazertag.Player do
        y: y,
        nickname: data["nickname"] || "Player #{:rand.uniform(10)}",
        angle: data["angle"],
-       direction: data["direction"],
+       direction: data["direction"] || 0,
        gun: Gun.new("revolver")
      }}
   end
