@@ -22,11 +22,11 @@ defmodule MapPlug do
 
       {x_min, x_max} = Enum.min_max_by(players, fn %{x: x} -> x end, fn -> {0, 500} end)
       x_delta = x_max.x - x_min.x
-      x_delta = if(x_delta == 0, do: 0.00000001, else: x_delta)
+      # x_delta = if(x_delta == 0, do: 0.01, else: x_delta)
 
       {y_min, y_max} = Enum.min_max_by(players, fn %{y: y} -> y end, fn -> {0, 500} end)
       y_delta = y_max.y - y_min.y
-      y_delta = if(y_delta == 0, do: 0.00000001, else: y_delta)
+      # y_delta = if(y_delta == 0, do: 0.01, else: y_delta)
 
       scale = 675 / Enum.max([x_delta, y_delta])
 
