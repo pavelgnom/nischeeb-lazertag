@@ -56,7 +56,7 @@ defmodule NischeebLazertag.Game do
           new_state = put_in(state, [:players, victim.address], victim)
           {:ok, :hit, {shot_player, victim}, new_state}
         else
-          victim = %{victim | health: 0}
+          victim = %{victim | health: 0, death_timestamp: DateTime.utc_now()}
           new_state = put_in(state, [:players, victim.address], victim)
           {:ok, :killed, {shot_player, victim}, new_state}
         end
@@ -75,7 +75,7 @@ defmodule NischeebLazertag.Game do
   def respawn(address, state) do
     case find_player(address, state) do
       {:error, :dead, player} ->
-        put_in(state, [:players, player.address], %{player | health: 100})
+        put_in(state, [:players, player.address], %{player | health: 100, death_timestamp: nil})
 
       _ ->
         state

@@ -20,15 +20,15 @@ defmodule MapPlug do
           %{x: player.x, y: -player.y, direction: player.direction, nickname: player.nickname, health: player.health}
         end)
 
-      # players = [%{direction: 225, nickname: "90", x: 30, y: -30, health: 100}, %{direction: 20, nickname: "0", x: 0, y: 0, health: 100}]
-
       {x_min, x_max} = Enum.min_max_by(players, fn %{x: x} -> x end, fn -> {0, 500} end)
       x_delta = x_max.x - x_min.x
+      x_delta = if(x_delta == 0, do: 0.00000001, else: x_delta)
 
       {y_min, y_max} = Enum.min_max_by(players, fn %{y: y} -> y end, fn -> {0, 500} end)
       y_delta = y_max.y - y_min.y
+      y_delta = if(y_delta == 0, do: 0.00000001, else: y_delta)
 
-      scale = 650 / Enum.max([x_delta, y_delta])
+      scale = 675 / Enum.max([x_delta, y_delta])
 
       scaled =
         players

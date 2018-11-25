@@ -14,10 +14,10 @@
     <script>
         var c = document.getElementById("map");
         var ctx = c.getContext("2d");
-        ctx.translate(50, 700);
+        ctx.translate(50, 710);
 
 
-        fetch("http://localhost:4000/map-data").then(response => { return response.json() }).then(data => {
+        fetch("/map-data").then(response => { return response.json() }).then(data => {
             console.log(data)
 
             data.forEach(player => {
@@ -27,7 +27,9 @@
                 ctx.stroke();
 
                 ctx.font = "18px Arial";
-                ctx.fillText(player.nickname + " (" + player.health + ")", player.x, player.y + 20);
+                var health;
+                if (player.health > 0) {health = player.health} else {health = "death"};
+                ctx.fillText(player.nickname + " (" + health + ")", player.x - 30, player.y + 40);
             });
 
         });

@@ -1,5 +1,5 @@
 defmodule NischeebLazertag.Player do
-  defstruct [:address, :x, :y, :angle, :direction, :gun, :nickname, health: 100]
+  defstruct [:address, :x, :y, :angle, :direction, :gun, :nickname, :death_timestamp, health: 100]
 
   alias NischeebLazertag.Gun
 

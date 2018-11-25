@@ -51,8 +51,9 @@ defmodule NischeebLazertag.GenServers.Game do
         TCPPlayer.send_response(address, json)
         {:noreply, state}
 
-      {:error, :dead, _player, state} ->
-        json = Jason.encode!(%{error: :dead})
+      {:error, :dead, player, state} ->
+        seconds = ((DateTime.utc_now() |> DateTime.to_unix()) - (player.death_timestamp |> DateTime.to_unix()) - 30) |> abs
+        json = Jason.encode!(%{error: :dead, data: %{seconds: seconds}})
         TCPPlayer.send_response(address, json)
         {:noreply, state}
 
@@ -87,7 +88,11 @@ defmodule NischeebLazertag.GenServers.Game do
         TCPPlayer.send_response(shot_player.address, json)
         {:noreply, state}
 
-      {:error, :dead, _player, state} ->
+      {:error, :dead, player, state} ->
+        seconds = ((DateTime.utc_now() |> DateTime.to_unix()) - (player.death_timestamp |> DateTime.to_unix()) - 30) |> abs
+        json = Jason.encode!(%{error: :dead, data: %{seconds: seconds}})
+        TCPPlayer.send_response(address, json)
+
         {:noreply, state}
 
       {:error, :not_found, state} ->
