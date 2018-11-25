@@ -9,21 +9,23 @@ defmodule MapPlug do
   def call(conn, _opts) do
     players =
       NischeebLazertag.GenServers.Game.get_state().players
-      |> Enum.map(fn {_ip, player} -> %{x: player.x, y: player.y, direction: player.direction, nickname: player.nickname} end)
+      |> Enum.map(fn {_ip, player} -> %{x: player.x, y: player.y, direction: player.direction, nickname: player.nickname, health: player.health} end)
 
-    {min, max} = Enum.min_max_by(players, fn %{x: x} -> x end)
-    x_scale = 500 / (max.x - min.x)
+    {x_min, x_max} = Enum.min_max_by(players, fn %{x: x} -> x end, fn -> {0, 500} end)
+    x_delta = x_max.x - x_min.x
 
-    {min, max} = Enum.min_max_by(players, fn %{y: y} -> y end)
-    y_scale = 500 / (max.y - min.y)
+    {y_min, y_max} = Enum.min_max_by(players, fn %{y: y} -> y end, fn -> {0, 500} end)
+    y_delta = y_max.y - y_min.y
+
+    scale = 500 / Enum.max([x_delta, y_delta])
 
     scaled =
       players
-      |> Enum.map(fn player -> %{player | x: player.x * x_scale, y: player.y * y_scale, direction: player.direction * :math.pi() / 180} end)
+      |> Enum.map(fn player -> %{player | x: player.x * scale, y: player.y * scale, direction: player.direction * :math.pi() / 180} end)
       |> Jason.encode!()
 
     conn
-    |> put_resp_content_type("text/plain")
+    |> put_resp_content_type("application/json")
     |> send_resp(200, scaled)
   end
 end
